@@ -1,0 +1,49 @@
+from datetime import datetime, timedelta
+
+class Event:
+    def __init__(self, start_time, end_time, description):
+        self.start_time = start_time
+        self.end_time = end_time
+        self.description = description
+
+    def __repr__(self):
+        return f"{self.description} ({self.start_time} - {self.end_time})"
+
+class EventManager:
+    def __init__(self):
+        self.events = []
+
+    def add_event(self, new_event):
+        if any(not (new_event.end_time <= event.start_time or new_event.start_time >= event.end_time) for event in self.events):
+            print(f"Conflict detected for event: {new_event.description}")
+            suggested_time = self.suggest_alternative_time(new_event)
+            print(f"Suggested alternative time: {suggested_time}")
+        else:
+            self.events.append(new_event)
+            print(f"Event added: {new_event.description}")
+
+    def suggest_alternative_time(self, new_event):
+        last_end_time = max((event.end_time for event in self.events), default=datetime.now())
+        suggested_start = last_end_time + timedelta(minutes=15)
+        suggested_end = suggested_start + (new_event.end_time - new_event.start_time)
+        return f"{suggested_start} - {suggested_end}"
+
+    def display_events(self):
+        if not self.events:
+            print("No events scheduled.")
+        else:
+            for event in self.events:
+                print(event)
+
+# Example usage
+manager = EventManager()
+
+event1 = Event(datetime(2025, 1, 29, 9, 0), datetime(2025, 1, 29, 10, 0), "A")
+event2 = Event(datetime(2025, 1, 29, 9, 0), datetime(2025, 1, 29, 10, 0), "B")
+event3 = Event(datetime(2025, 1, 29, 11, 30), datetime(2025, 1, 29, 12, 30), "C")  # Conflict with event1
+
+manager.add_event(event1)
+manager.add_event(event2)
+manager.add_event(event3)
+
+manager.display_events()
