@@ -1,0 +1,88 @@
+class FungibleToken:
+    def __init__(self, name, symbol, total_supply):
+        self.name = name
+        self.symbol = symbol
+        self.total_supply = total_supply
+        self.balances = {}  
+
+    def create_account(self, account_name, initial_balance):
+        """Create a new account with an initial balance."""
+        self.balances[account_name] = initial_balance
+        print(f"Account created: {account_name} with balance {initial_balance} {self.symbol}.")
+
+    def transfer(self, sender, recipient, amount):
+        """Transfer tokens from one account to another."""
+        
+        if sender not in self.balances or self.balances[sender] < amount:
+            print(f"Error: {sender} does not have enough {self.symbol} to transfer.")
+            return
+
+       
+        self.balances[sender] -= amount
+        if recipient not in self.balances:
+            self.create_account(recipient, 0)  
+        self.balances[recipient] += amount
+        print(f"Transfer successful! {amount} {self.symbol} transferred from {sender} to {recipient}.")
+
+    def mint_tokens(self, amount, distribution_list=None):
+        """Mint additional tokens and distribute them."""
+        if amount <= 0:
+            print("Error: Minting amount must be greater than 0.")
+            return
+
+      
+        self.total_supply += amount
+        print(f"{amount} {self.symbol} minted. Total supply now is {self.total_supply}.")
+
+        
+        if distribution_list:
+            total_percent = sum(dist[1] for dist in distribution_list)
+            if total_percent != 100:
+                print("Error: Distribution percentages must sum up to 100.")
+                return
+
+            for account, percent in distribution_list:
+                amount_to_distribute = amount * (percent / 100)
+                self.transfer("Treasury", account, amount_to_distribute)
+                print(f"Distributed {amount_to_distribute} {self.symbol} to {account}.")
+
+        else:
+            
+            if "Treasury" not in self.balances:
+                self.create_account("Treasury", 0)
+            self.balances["Treasury"] += amount
+            print(f"All {amount} {self.symbol} minted to Treasury.")
+
+    def display_balance(self, account_name):
+        """Display the balance of a given account."""
+        if account_name in self.balances:
+            print(f"{account_name}'s {self.symbol} Balance: {self.balances[account_name]}")
+        else:
+            print(f"{account_name} does not have an account.")
+
+def main():
+    
+    token = FungibleToken("MyToken", "BS", 1000000)
+
+   
+    token.create_account("Treasury", 950)
+    token.create_account("Recipient", 50)
+
+    
+    print(f"Token Created: {token.name} ({token.symbol})")
+    token.display_balance("Treasury")
+    token.display_balance("Recipient")
+
+    distribution_list = [
+        ("Treasury", 50),
+        ("Recipient", 25),
+        ("Account1", 25)
+    ]
+    token.mint_tokens(500, distribution_list)
+
+    token.display_balance("Treasury")
+    token.display_balance("Recipient")
+    token.display_balance("Account1")
+
+if __name__ == "__main__":
+    main()
